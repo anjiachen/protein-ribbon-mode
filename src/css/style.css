@@ -1,0 +1,148 @@
+/* 基本样式设置 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f8fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    background-color: #2a56c6;
+    color: white;
+    border-radius: 8px;
+}
+
+h1, h2 {
+    margin-bottom: 15px;
+}
+
+/* 表单样式 */
+.input-section, .result-section, .visualization-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.input-method {
+    margin-bottom: 15px;
+}
+
+select, input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+button {
+    background-color: #2a56c6;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #1a46b6;
+}
+
+/* 提示文本样式 */
+.tip {
+    font-size: 14px;
+    color: #666;
+    margin-top: -10px;
+    margin-bottom: 15px;
+    font-style: italic;
+}
+
+.visualization-section .tip {
+    text-align: center;
+    margin-top: 10px;
+}
+
+/* 可视化区域 */
+#viewer-container {
+    height: 500px;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fafafa;
+    position: relative;
+}
+
+/* 可视化控制按钮 */
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.controls button {
+    width: auto;
+    flex: 1;
+    max-width: 120px;
+    background-color: #3a66d6;
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+.controls button:hover {
+    background-color: #2a56c6;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .input-section, .result-section, .visualization-section {
+        padding: 15px;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+    }
+    
+    .controls button {
+        min-width: 45%;
+    }
+}
+
+@media (max-width: 480px) {
+    .controls button {
+        min-width: 100%;
+    }
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px 0;
+    color: #666;
+} 

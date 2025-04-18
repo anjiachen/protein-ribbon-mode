@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蛋白质序列分析与可视化工具</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 添加3Dmol.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://3Dmol.org/build/3Dmol-min.js"></script>
+    <script src="https://3Dmol.org/build/3Dmol.ui-min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="my-4 text-center">
+            <h1 class="text-primary">蛋白质序列分析与可视化工具</h1>
+            <p class="text-muted">基于Python生物信息学库构建的专业蛋白质结构分析平台</p>
+        </header>
+        
+        <div class="row">
+            <!-- 输入区域 -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="h5 mb-0">DNA序列输入</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="sequence-type" class="form-label">选择输入方式：</label>
+                            <select id="sequence-type" class="form-select">
+                                <option value="manual">手动输入DNA序列</option>
+                                <option value="query">使用NCBI查询</option>
+                                <option value="example">使用示例序列</option>
+                            </select>
+                        </div>
+                        
+                        <div id="manual-input">
+                            <textarea id="dna-sequence" class="form-control mb-3" rows="8" placeholder="请输入DNA序列（只包含A, T, G, C）"></textarea>
+                        </div>
+                        
+                        <div id="query-input" style="display: none;">
+                            <div class="input-group mb-3">
+                                <input type="text" id="sequence-name" class="form-control" placeholder="输入蛋白质或基因名称">
+                                <button id="search-btn" class="btn btn-primary">
+                                    <span id="search-btn-text">从NCBI查询</span>
+                                    <span id="search-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                            <div class="alert alert-info small">
+                                <p>可以输入如"beta globin human"、"insulin"等关键词</p>
+                            </div>
+                        </div>
+                        
+                        <div id="example-input" style="display: none;">
+                            <select id="example-select" class="form-select mb-3">
+                                <option value="">-- 选择示例序列 --</option>
+                                <option value="beta_globin">人类β-珠蛋白</option>
+                                <option value="alpha_globin">人类α-珠蛋白</option>
+                                <option value="insulin">人类胰岛素</option>
+                            </select>
+                        </div>
+                        
+                        <button id="translate-btn" class="btn btn-success w-100">
+                            <span id="translate-btn-text">转换为氨基酸序列</span>
+                            <span id="translate-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 氨基酸结果区域 -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h2 class="h5 mb-0">氨基酸序列</h2>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="amino-sequence" class="form-control mb-3" rows="8" placeholder="转换结果将显示在这里"></textarea>
+                        <div class="form-text mb-2">氨基酸序列可以编辑。修改后点击下方按钮进行可视化。</div>
+                        <div class="d-grid">
+                            <button id="visualize-btn" class="btn btn-primary" disabled>
+                                <span id="visualize-btn-text">可视化结构</span>
+                                <span id="visualize-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 可视化区域 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h2 class="h5 mb-0">蛋白质结构可视化</h2>
+                    </div>
+                    <div class="card-body">
+                        <!-- 3D显示区域 - 单个视图模式 -->
+                        <div id="single-view-container" class="text-center py-3">
+                            <p class="text-muted" id="visualization-placeholder">请先生成氨基酸序列并点击"可视化结构"按钮</p>
+                            <!-- 3Dmol.js 显示区 -->
+                            <div id="3dmol-viewer" style="height: 400px; width: 100%; position: relative; display: none;"></div>
+                        </div>
+                        
+                        <!-- 3D显示区域 - 比较视图模式 (初始隐藏) -->
+                        <div id="compare-view-container" class="row py-3" style="display: none;">
+                            <div class="col-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">原始结构 <small class="text-danger">(红色:被删除)</small></h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div id="original-viewer" style="height: 350px; width: 100%; position: relative;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0">修改后结构 <small class="text-warning">(黄色:新增)</small></h6>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div id="modified-viewer" style="height: 350px; width: 100%; position: relative;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="visualization-controls" class="row mt-3" style="display: none;">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-center flex-wrap gap-2">
+                                    <button id="ribbon-view" class="btn btn-outline-primary">骨架视图</button>
+                                    <button id="stick-view" class="btn btn-outline-primary">棍状视图</button>
+                                    <button id="sphere-view" class="btn btn-outline-primary">球状视图</button>
+                                    <button id="cartoon-view" class="btn btn-outline-primary active">卡通视图</button>
+                                </div>
+                                <div class="text-center mt-2">
+                                    <p class="text-muted small">基于3Dmol.js的真实3D蛋白质结构可视化</p>
+                                    <p id="pdb-info" class="text-muted small"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center text-muted mb-4">
+            <p>蛋白质序列分析工具 &copy; 2023 | 使用Biopython和3Dmol.js提供技术支持</p>
+        </footer>
+    </div>
+    
+    <!-- 加载脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 
